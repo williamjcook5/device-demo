@@ -14,11 +14,22 @@
   --border:    #283039;
   --text:      #e6edf3;
   --text-dim:  #8b97a6;
-  --accent:    #3fd1a3;   /* live / online / chart line */
-  --amber:     #f2b134;   /* LED energized */
+  --accent:    #3fd1a3;
+  --amber:     #f2b134;
   --radius:    12px;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-theme="light"] {
+  --bg:        #f3f5f7;
+  --surface:   #ffffff;
+  --surface-2: #eef0f3;
+  --border:    #dde1e7;
+  --text:      #1a2332;
+  --text-dim:  #6b7a8d;
+  --accent:    #1a9e78;
+  --amber:     #b87000;
 }
 
 * { box-sizing: border-box; }
@@ -67,6 +78,13 @@ body {
 .link-pill.on { color: var(--accent); border-color: rgba(63, 209, 163, 0.3); }
 .link-pill.on .dot { background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
 
+.theme-btn {
+  background: none; border: 1px solid var(--border); border-radius: 999px;
+  color: var(--text-dim); cursor: pointer; font-size: 12px;
+  padding: 6px 12px; transition: color 0.15s, border-color 0.15s;
+}
+.theme-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
 /* The signature: a soft pulsing ring on anything live. */
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(63, 209, 163, 0.5); }
@@ -102,6 +120,11 @@ body {
 }
 
 .device-table th:first-child { padding-left: 0; width: 20px; }
+
+.device-table th.sortable { cursor: pointer; user-select: none; }
+.device-table th.sortable:hover { color: var(--text); }
+.sort-indicator { opacity: 0.35; font-size: 10px; }
+.device-table th.sorted .sort-indicator { opacity: 1; color: var(--accent); }
 
 .device-row {
   border-bottom: 1px solid var(--border);

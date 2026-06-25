@@ -18,11 +18,17 @@ import DeviceRow from './components/DeviceRow.jsx';
 import DeviceDetail from './components/DeviceDetail.jsx';
 
 export default function App() {
-  // devices: { [id]: deviceObject }. A map (not an array) so a single update
-  // is just devices[id] = newDevice, no searching.
   const [devices, setDevices] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const [connected, setConnected] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
 
   // The most recent telemetry point we've seen. The detail panel watches this
   // and appends it to its chart when it matches the open device.
@@ -54,9 +60,31 @@ export default function App() {
     return () => ws.close();
   }, []);
 
+  const [sortKey, setSortKey] = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
   const deviceList = Object.values(devices);
   const online = deviceList.filter((d) => d.online).length;
   const selected = selectedId ? devices[selectedId] : null;
+
+  const sortedDevices = [...deviceList].sort((a, b) => {
+    let av = a[sortKey] ?? '';
+    let bv = b[sortKey] ?? '';
+    if (typeof av === 'boolean') av = av ? 1 : 0;
+    if (typeof bv === 'boolean') bv = bv ? 1 : 0;
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   return (
     <div className="app">
@@ -74,6 +102,9 @@ export default function App() {
           <span className={`link-pill ${connected ? 'on' : 'off'}`}>
             <span className="dot" /> {connected ? 'live' : 'connecting'}
           </span>
+          <button className="theme-btn" onClick={toggleTheme}>
+            {theme === 'dark' ? '☀ Light' : '☾ Dark'}
+          </button>
         </div>
       </header>
 
@@ -88,17 +119,17 @@ export default function App() {
             <thead>
               <tr>
                 <th></th>
-                <th>Device</th>
-                <th>Location</th>
-                <th>Type</th>
-                <th>Temp</th>
-                <th>Humidity</th>
-                <th>LED</th>
-                <th>Switch</th>
+                <SortTh label="Device"   col="name"          sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortTh label="Location" col="location"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortTh label="Type"     col="type"          sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortTh label="Temp"     col="temperature"   sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortTh label="Humidity" col="humidity"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortTh label="LED"      col="led_state"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortTh label="Switch"   col="switch_state"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
               </tr>
             </thead>
             <tbody>
-              {deviceList.map((device) => (
+              {sortedDevices.map((device) => (
                 <DeviceRow
                   key={device.id}
                   device={device}
@@ -118,6 +149,18 @@ export default function App() {
         />
       )}
     </div>
+  );
+}
+
+function SortTh({ label, col, sortKey, sortDir, onSort }) {
+  const active = sortKey === col;
+  return (
+    <th className={`sortable ${active ? 'sorted' : ''}`} onClick={() => onSort(col)}>
+      {label}
+      <span className="sort-indicator">
+        {active ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕'}
+      </span>
+    </th>
   );
 }
 
